@@ -1,0 +1,92 @@
+<html>
+
+<head>
+  <title>Watersnoodmuseum | Stroomgaten Atlas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+  integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+  crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+    integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+    crossorigin=""></script>
+    <style>
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    html, body, #map {
+        height: 100%;
+        width: 100vw;
+    }
+  </style>
+</head>
+  <body>
+    <div id="map"></div>
+    <script>
+    var map = L.map("map").setView([51.5915, 4.4136], 8);
+
+L.tileLayer(
+  "https://b.tiles.mapbox.com/v3/nelenschuurmans.iaa98k8k/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibmVsZW5zY2h1dXJtYW5zIiwiYSI6ImhkXzhTdXcifQ.3k2-KAxQdyl5bILh_FioCw",
+  {
+    attribution:
+      'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 18
+  }
+).addTo(map);
+map.locate({ setView: true, maxZoom: 16 });
+function onLocationFound(e) {
+  var radius = e.accuracy / 2;
+
+  L.marker(e.latlng)
+    .addTo(map)
+    .bindPopup("Je staat op ongeveer " + radius + " meter van dit punt...")
+    .openPopup();
+
+  L.circle(e.latlng, radius).addTo(map);
+}
+
+map.on("locationfound", onLocationFound);
+
+var markers = fetch("stroomgaten.geojson")
+  .then(function(response) {
+    return response.json();
+  })
+  .then(function(data) {
+    return data.features;
+  });
+markers.then(function(markers) {
+  markers.forEach(function(marker) {
+    var popupTable = "<table style='width:300px;'>";
+    popupTable +=
+      "<tr><td>Bonneblad</td><td>" +
+      marker.properties["bonneblad"] +
+      "</td></tr>";
+    popupTable +=
+      "<tr><td>Code</td><td>" + marker.properties["Code SG"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Dijk</td><td>" + marker.properties["dijk"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Kaartdeel</td><td>" +
+      marker.properties["kaartdeel"] +
+      "</td></tr>";
+    popupTable +=
+      "<tr><td>LF</td><td>" + marker.properties["LF no"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Naam</td><td>" + marker.properties["NAAM"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Plaats</td><td>" + marker.properties["plaats"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Polder</td><td>" + marker.properties["polder"] + "</td></tr>";
+    popupTable +=
+      "<tr><td>Strips</td><td>" +
+      marker.properties["KLM strips"] +
+      "</td></tr>";
+    popupTable += "</table>";
+
+    L.geoJSON(marker).addTo(map).bindPopup(popupTable);
+  });
+});
+</script>
+
+  </body>
+</html>
